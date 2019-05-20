@@ -1,49 +1,67 @@
-package videotovideo;
+package swing;
 
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
+import img2img.ImgToImg;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.URL;
-import java.util.ResourceBundle;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-/**
- * @author sunwx
- * @description:
- * @date 2019/5/1711:51
- */
-public class VideoToVideo {
+public class VideoToVideo extends JFrame {
+
+    public static void main(String[] args) throws Exception {
+        VideoToVideo dc = new VideoToVideo();
+        dc.init();
+
+    }
 
 
-    public void getVideo(GraphicsContext g, FFmpegFrameGrabber f) throws Exception {
+    BufferedImage image = null;
+    private Canvas canvas = new Canvas();
 
-        FFmpegFrameGrabber fFmpegFrameGrabber = new FFmpegFrameGrabber("C:/Users/sunwx/Pictures/2.mp4");
-        fFmpegFrameGrabber.start();
+    public void init() throws Exception {
+        FFmpegFrameGrabber f = new FFmpegFrameGrabber("C:/Users/sunwx/Pictures/2.mp4");
+        f.start();
+        int x = f.getImageWidth();
+        int y = f.getImageHeight();
+        System.out.println(x + ";" + y);
+        JFrame frame = new JFrame("测试");
+        frame.setSize(x, y);
+
+        frame.add(canvas);
+        frame.setLayout(null);
+        canvas.setBounds(0, 0, x, y);
+        frame.setVisible(true);
+        getVideo(f);
+
+    }
+
+    public void getVideo(FFmpegFrameGrabber f) throws Exception {
+
         //获取视频总帧数
-        int ftp = fFmpegFrameGrabber.getLengthInFrames();
-        int x = fFmpegFrameGrabber.getImageWidth();
-        int y = fFmpegFrameGrabber.getImageHeight();
+        int ftp = f.getLengthInFrames();
+        int x = f.getImageWidth();
+        int y = f.getImageHeight();
         System.out.println(x + ":" + y);
 
         System.out.println("时长：" + ftp);
 
-        System.out.println("时长 " + ftp / fFmpegFrameGrabber.getFrameRate() / 60);
+        System.out.println("时长 " + ftp / f.getFrameRate() / 60);
         //标识
         int flag = 0;
         //Frame对象
         Frame frame;
         while (flag <= ftp) {
-            frame = fFmpegFrameGrabber.grabImage();
+            frame = f.grabImage();
 				/*
 				对视频的第五帧进行处理
 				 */
@@ -58,7 +76,7 @@ public class VideoToVideo {
 
                 ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
                 BufferedImage temp = ImageIO.read(input);
-                showImgAscii(temp, g);
+                showImgAscii(temp);
                 System.out.println("在循环");
                 continue;
             }
@@ -67,14 +85,13 @@ public class VideoToVideo {
 
     }
 
-
-    public void showImgAscii(BufferedImage temp, GraphicsContext gc) throws IOException {
+    public void showImgAscii(BufferedImage temp) throws IOException {
         //String base = "@#&$%*o!;.";// 字符串由复杂到简单
         String base = "MNHQ$OC?7>!:-;,.";// 字符串由复杂到简单
 
 
         // 创建图片
-        BufferedImage image = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_BGR);
+        image = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_BGR);
 
         Graphics gh = image.getGraphics();
 
@@ -95,20 +112,8 @@ public class VideoToVideo {
         }
         gh.drawImage(temp, 0, 0, temp.getWidth() / 5, temp.getHeight() / 5, null);
         gh.dispose();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        ImageIO.write(image, "jpg", out);
-        //ImageIO.write(image, "jpg", new File("C:/Users/sunwx/Pictures/3.jpg"));
-
-        ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
-
-
-        Image image1 = new Image(input);
-
-
-        gc.drawImage(image1, 0, 0);
-
+        canvas.paint(gh);
+        canvas.getGraphics().drawImage(image, 0, 0, null);
     }
 
     public static BufferedImage FrameToBufferedImage(Frame frame) {

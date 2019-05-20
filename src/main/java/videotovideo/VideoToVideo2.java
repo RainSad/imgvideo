@@ -1,11 +1,8 @@
 package videotovideo;
 
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -13,65 +10,60 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.URL;
-import java.util.ResourceBundle;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author sunwx
  * @description:
  * @date 2019/5/1711:51
  */
-public class VideoToVideo {
+public class VideoToVideo2 {
 
+    public void getVideo(FFmpegFrameGrabber f, GraphicsContext g) throws Exception {
 
-    public void getVideo(GraphicsContext g, FFmpegFrameGrabber f) throws Exception {
-
-        FFmpegFrameGrabber fFmpegFrameGrabber = new FFmpegFrameGrabber("C:/Users/sunwx/Pictures/2.mp4");
-        fFmpegFrameGrabber.start();
+        f.start();
         //获取视频总帧数
-        int ftp = fFmpegFrameGrabber.getLengthInFrames();
-        int x = fFmpegFrameGrabber.getImageWidth();
-        int y = fFmpegFrameGrabber.getImageHeight();
-        System.out.println(x + ":" + y);
-
+        int ftp = f.getLengthInFrames();
         System.out.println("时长：" + ftp);
 
-        System.out.println("时长 " + ftp / fFmpegFrameGrabber.getFrameRate() / 60);
+        System.out.println("时长 " + ftp / f.getFrameRate() / 60);
         //标识
         int flag = 0;
         //Frame对象
         Frame frame;
+
         while (flag <= ftp) {
-            frame = fFmpegFrameGrabber.grabImage();
+            frame = f.grabImage();
 				/*
 				对视频的第五帧进行处理
 				 */
-
-            if (frame != null && flag == 5) {
-
+            flag++;
+            if (frame != null && ((flag % 5) == 0)) {
+                Thread.sleep(5000);
                 //文件储存对象
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
-
 
                 ImageIO.write(FrameToBufferedImage(frame), "jpg", out);
 
                 ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
-                BufferedImage temp = ImageIO.read(input);
-                showImgAscii(temp, g);
+
+                showImgAscii(input, g);
                 System.out.println("在循环");
                 continue;
             }
-            flag++;
-        }
 
+        }
     }
 
 
-    public void showImgAscii(BufferedImage temp, GraphicsContext gc) throws IOException {
+    public void showImgAscii(InputStream inputStream, GraphicsContext gc) throws IOException {
         //String base = "@#&$%*o!;.";// 字符串由复杂到简单
         String base = "MNHQ$OC?7>!:-;,.";// 字符串由复杂到简单
 
+        BufferedImage temp = ImageIO.read(inputStream);
 
         // 创建图片
         BufferedImage image = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_BGR);
@@ -108,7 +100,8 @@ public class VideoToVideo {
 
 
         gc.drawImage(image1, 0, 0);
-
+//        gc.strokeLine(60, 0, 60, 100);
+//        gc.fillText("hello", 120, 140);
     }
 
     public static BufferedImage FrameToBufferedImage(Frame frame) {

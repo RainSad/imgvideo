@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="imgvideo" target="1.8" />
+      <module name="imgvideo" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
